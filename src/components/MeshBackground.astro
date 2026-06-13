@@ -1,9 +1,23 @@
 ---
 ---
 
+<div id="gradient-bg" aria-hidden="true"></div>
 <canvas id="gradient-canvas" aria-hidden="true"></canvas>
 
 <style>
+  #gradient-bg {
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    background: linear-gradient(135deg, #bfeef5 0%, #cdeecd 35%, #f3f0fb 65%, #f7c7e8 100%);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    #gradient-bg {
+      background: linear-gradient(135deg, #1e5a6e 0%, #1a4e2e 35%, #2e1a52 65%, #4e1a38 100%);
+    }
+  }
+
   #gradient-canvas {
     position: fixed;
     inset: 0;
@@ -15,16 +29,36 @@
     --gradient-color-3: #f3f0fb;
     --gradient-color-4: #f7c7e8;
   }
+
+  @media (prefers-color-scheme: dark) {
+    #gradient-canvas {
+      --gradient-color-1: #1e5a6e;
+      --gradient-color-2: #1a4e2e;
+      --gradient-color-3: #2e1a52;
+      --gradient-color-4: #4e1a38;
+    }
+  }
 </style>
 
 <script>
-  const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
-  if (mq.matches) {
-    const canvas = document.getElementById('gradient-canvas')!;
-    canvas.style.cssText +=
-      'background: linear-gradient(135deg, #bfeef5 0%, #cdeecd 35%, #f3f0fb 65%, #f7c7e8 100%);';
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const dark = window.matchMedia('(prefers-color-scheme: dark)');
+
+  if (reduced.matches) {
+    document.getElementById('gradient-canvas')!.style.display = 'none';
   } else {
     const { Gradient } = await import('whatamesh');
-    new Gradient().initGradient('#gradient-canvas');
+
+    function initGradient() {
+      // Replace the canvas so the old RAF loop renders to a detached element
+      // and the new Gradient starts clean with the current CSS vars.
+      const old = document.getElementById('gradient-canvas')!;
+      const fresh = old.cloneNode(false) as HTMLElement;
+      old.replaceWith(fresh);
+      new Gradient().initGradient('#gradient-canvas');
+    }
+
+    initGradient();
+    dark.addEventListener('change', initGradient);
   }
 </script>
