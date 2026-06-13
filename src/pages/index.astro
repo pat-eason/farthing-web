@@ -1,0 +1,19 @@
+---
+import Base from '../layouts/Base.astro';
+import MeshBackground from '../components/MeshBackground.astro';
+import Hero from '../components/Hero.astro';
+import Carousel from '../components/Carousel.astro';
+import { GITHUB_URL, AUTHOR } from '../config';
+---
+
+<Base>
+  <MeshBackground />
+  <div class="page-wrapper">
+    <Hero />
+    <Carousel />
+    <footer class="footer">
+      <span>Built by <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer">{AUTHOR}</a></span>
+      <span>&copy; 2026 {AUTHOR}</span>
+    </footer>
+  </div>
+</Base>

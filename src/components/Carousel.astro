@@ -1,0 +1,122 @@
+---
+interface Slide {
+  src: string;
+  alt: string;
+}
+
+interface Props {
+  slides?: Slide[];
+}
+
+const {
+  slides = [
+    { src: '/screenshots/sessions.png', alt: 'Sessions view' },
+    { src: '/screenshots/breakdown.png', alt: 'Cost breakdown' },
+    { src: '/screenshots/settings.png', alt: 'Settings' },
+  ],
+} = Astro.props;
+---
+
+<div class="carousel-section">
+  <div class="card">
+    <div class="embla" id="embla">
+      <div class="embla__viewport" id="embla-viewport">
+        <div class="embla__container" id="embla-container">
+          {
+            slides.map((slide, i) => (
+              <div class="embla__slide">
+                <img
+                  src={slide.src}
+                  alt={slide.alt}
+                  loading={i === 0 ? 'eager' : 'lazy'}
+                  decoding="async"
+                  onerror="this.style.background='rgba(0,0,0,0.06)';this.removeAttribute('src')"
+                />
+              </div>
+            ))
+          }
+        </div>
+      </div>
+
+      <div class="embla__controls">
+        <button class="embla__btn" id="embla-prev" aria-label="Previous screenshot">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        </button>
+
+        <div class="embla__dots" id="embla-dots" role="tablist" aria-label="Screenshots">
+          {
+            slides.map((_, i) => (
+              <button
+                class={`embla__dot${i === 0 ? ' embla__dot--selected' : ''}`}
+                role="tab"
+                aria-selected={i === 0 ? 'true' : 'false'}
+                aria-label={`Screenshot ${i + 1}`}
+                data-index={i}
+              />
+            ))
+          }
+        </div>
+
+        <button class="embla__btn" id="embla-next" aria-label="Next screenshot">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  import EmblaCarousel from 'embla-carousel';
+
+  const viewport = document.getElementById('embla-viewport') as HTMLElement;
+  const prevBtn = document.getElementById('embla-prev') as HTMLButtonElement;
+  const nextBtn = document.getElementById('embla-next') as HTMLButtonElement;
+  const dotsContainer = document.getElementById('embla-dots') as HTMLElement;
+  const dots = Array.from(dotsContainer.querySelectorAll<HTMLButtonElement>('.embla__dot'));
+
+  const embla = EmblaCarousel(viewport, { loop: true, dragFree: false });
+
+  function updateDots() {
+    const index = embla.selectedScrollSnap();
+    dots.forEach((dot, i) => {
+      const selected = i === index;
+      dot.classList.toggle('embla__dot--selected', selected);
+      dot.setAttribute('aria-selected', String(selected));
+    });
+  }
+
+  prevBtn.addEventListener('click', () => embla.scrollPrev());
+  nextBtn.addEventListener('click', () => embla.scrollNext());
+
+  dots.forEach((dot) => {
+    dot.addEventListener('click', () => {
+      const i = Number(dot.dataset.index);
+      embla.scrollTo(i);
+    });
+  });
+
+  embla.on('select', updateDots);
+  embla.on('init', updateDots);
+</script>
