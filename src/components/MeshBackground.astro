@@ -7,7 +7,10 @@
 <style>
   #gradient-bg {
     position: fixed;
-    inset: 0;
+    top: calc(-1 * env(safe-area-inset-top, 0px));
+    right: calc(-1 * env(safe-area-inset-right, 0px));
+    bottom: calc(-1 * env(safe-area-inset-bottom, 0px));
+    left: calc(-1 * env(safe-area-inset-left, 0px));
     z-index: -2;
     background: linear-gradient(135deg, #bfeef5 0%, #cdeecd 35%, #f3f0fb 65%, #f7c7e8 100%);
   }
@@ -20,9 +23,10 @@
 
   #gradient-canvas {
     position: fixed;
-    inset: 0;
-    width: 100%;
-    height: 100%;
+    top: calc(-1 * env(safe-area-inset-top, 0px));
+    right: calc(-1 * env(safe-area-inset-right, 0px));
+    bottom: calc(-1 * env(safe-area-inset-bottom, 0px));
+    left: calc(-1 * env(safe-area-inset-left, 0px));
     z-index: -1;
     --gradient-color-1: #bfeef5;
     --gradient-color-2: #cdeecd;

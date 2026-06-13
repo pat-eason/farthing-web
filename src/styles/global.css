@@ -28,6 +28,13 @@ html {
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background: linear-gradient(135deg, #bfeef5 0%, #cdeecd 35%, #f3f0fb 65%, #f7c7e8 100%);
+}
+
+@media (prefers-color-scheme: dark) {
+  html {
+    background: linear-gradient(135deg, #1e5a6e 0%, #1a4e2e 35%, #2e1a52 65%, #4e1a38 100%);
+  }
 }
 
 body {
@@ -43,7 +50,7 @@ body {
   flex-direction: column;
   align-items: center;
   min-height: 100dvh;
-  padding: 0 1.25rem;
+  padding: env(safe-area-inset-top) calc(1.25rem + env(safe-area-inset-right)) env(safe-area-inset-bottom) calc(1.25rem + env(safe-area-inset-left));
 }
 
 /* Hero section */
