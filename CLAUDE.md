@@ -30,14 +30,14 @@ Single-page static Astro site (no UI framework, static output). One page (`src/p
 
 ## Version indicator
 
-`src/version.ts` exports `VERSION` and is rendered as a linked badge directly under the download button in `Hero.astro` (class `hero__version`).
+`src/version.ts` exports `VERSION`, rendered as a centered second line inside the download button in `Hero.astro` (class `btn-download__version`).
 
 **Do not hand-edit `src/version.ts`.** It is auto-managed by `.github/workflows/update-version.yml`, which overwrites the file wholesale on each release.
 
 **How it works:**
-1. When a release is published in the Farthing repo, `Farthing/.github/workflows/notify-web.yml` fires a `repository_dispatch` event of type `farthing-release` to this repo, with `client_payload.version` set to the new tag (e.g. `v0.4.0`).
-2. `.github/workflows/update-version.yml` picks that up, strips the leading `v`, writes `src/version.ts`, commits, and pushes to `main`.
-3. The push triggers DigitalOcean App Platform's auto-redeploy, so the badge updates on the live site within minutes.
+1. When a release is published in the Farthing repo, `Farthing/.github/workflows/release.yml` sends a `repository_dispatch` event of type `farthing-release` to this repo, with `client_payload.version` set to the new tag (e.g. `v0.4.0`).
+2. `.github/workflows/update-version.yml` picks that up, strips the leading `v`, writes `src/version.ts`, and lands it on `main` via an **auto-merged PR** (main is protected to require pull requests, so a direct push is rejected; PRs need 0 approvals, so the workflow opens one and squash-merges it).
+3. The merge to `main` triggers DigitalOcean App Platform's auto-redeploy, so the badge updates on the live site within minutes.
 
 The workflow also supports `workflow_dispatch` with a `version` input for manual updates or backfills.
 
