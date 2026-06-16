@@ -127,6 +127,21 @@ body {
   box-shadow: 0 1px 6px rgba(47, 111, 237, 0.3);
 }
 
+.hero__version {
+  margin-top: 0.65rem;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--color-ink-muted);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.hero__version:hover {
+  color: var(--color-ink);
+}
+
 /* Carousel section */
 .carousel-section {
   width: 100%;

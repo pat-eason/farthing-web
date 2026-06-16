@@ -28,6 +28,19 @@ Single-page static Astro site (no UI framework, static output). One page (`src/p
 
 **Fonts:** Fraunces (display headline, weights 500/600) + Inter (body/UI, weights 400/500), self-hosted via `@fontsource/*` — no external CDN.
 
+## Version indicator
+
+`src/version.ts` exports `VERSION` and is rendered as a linked badge directly under the download button in `Hero.astro` (class `hero__version`).
+
+**Do not hand-edit `src/version.ts`.** It is auto-managed by `.github/workflows/update-version.yml`, which overwrites the file wholesale on each release.
+
+**How it works:**
+1. When a release is published in the Farthing repo, `Farthing/.github/workflows/notify-web.yml` fires a `repository_dispatch` event of type `farthing-release` to this repo, with `client_payload.version` set to the new tag (e.g. `v0.4.0`).
+2. `.github/workflows/update-version.yml` picks that up, strips the leading `v`, writes `src/version.ts`, commits, and pushes to `main`.
+3. The push triggers DigitalOcean App Platform's auto-redeploy, so the badge updates on the live site within minutes.
+
+The workflow also supports `workflow_dispatch` with a `version` input for manual updates or backfills.
+
 ## Swapping in real assets
 
 | File / constant | What to replace |

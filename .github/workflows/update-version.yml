@@ -1,0 +1,58 @@
+name: Update version indicator
+
+# Triggered by a repository_dispatch from the Farthing repo when a release is
+# published (see Farthing/.github/workflows/notify-web.yml). Writes the released
+# version into src/version.ts and pushes to main, which triggers the
+# DigitalOcean App Platform auto-redeploy. workflow_dispatch allows a manual
+# override / backfill.
+on:
+  repository_dispatch:
+    types: [farthing-release]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to set (with or without leading v, e.g. v0.3.0)"
+        required: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-version
+  cancel-in-progress: false
+
+jobs:
+  update:
+    name: Write version indicator
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve version
+        run: |
+          RAW="${{ github.event.client_payload.version || inputs.version }}"
+          if [ -z "$RAW" ]; then
+            echo "::error::No version supplied via client_payload or workflow input"
+            exit 1
+          fi
+          echo "VERSION=${RAW#v}" >> "$GITHUB_ENV"
+
+      - name: Write version file
+        run: |
+          cat > src/version.ts <<EOF
+          // Auto-managed by .github/workflows/update-version.yml on Farthing releases.
+          // Do not edit by hand; the workflow overwrites this file wholesale.
+          export const VERSION = '${VERSION}';
+          EOF
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet -- src/version.ts; then
+            echo "Version already ${VERSION}; nothing to do."
+          else
+            git add src/version.ts
+            git commit -m "chore: set version indicator to v${VERSION}"
+            git push origin HEAD:main
+          fi
