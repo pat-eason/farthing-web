@@ -1,10 +1,11 @@
 name: Update version indicator
 
 # Triggered by a repository_dispatch from the Farthing repo when a release is
-# published (see Farthing/.github/workflows/notify-web.yml). Writes the released
-# version into src/version.ts and pushes to main, which triggers the
-# DigitalOcean App Platform auto-redeploy. workflow_dispatch allows a manual
-# override / backfill.
+# published (sent directly from Farthing's release.yml). Writes the released
+# version into src/version.ts and lands it on main via an auto-merged PR — main
+# is protected to require pull requests, so a direct push is rejected. The merge
+# to main triggers the DigitalOcean App Platform auto-redeploy. workflow_dispatch
+# allows a manual override / backfill.
 on:
   repository_dispatch:
     types: [farthing-release]
@@ -16,6 +17,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 concurrency:
   group: update-version
@@ -45,14 +47,39 @@ jobs:
           export const VERSION = '${VERSION}';
           EOF
 
-      - name: Commit and push if changed
+      - name: Open and auto-merge version PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           if git diff --quiet -- src/version.ts; then
             echo "Version already ${VERSION}; nothing to do."
-          else
-            git add src/version.ts
-            git commit -m "chore: set version indicator to v${VERSION}"
-            git push origin HEAD:main
+            exit 0
+          fi
+
+          BRANCH="chore/version-${VERSION}-${GITHUB_RUN_ID}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+          git add src/version.ts
+          git commit -m "chore: set version indicator to v${VERSION}"
+          git push origin "$BRANCH"
+
+          gh pr create --base main --head "$BRANCH" \
+            --title "chore: set version indicator to v${VERSION}" \
+            --body "Automated version-indicator update to v${VERSION}."
+
+          # main requires a PR (0 approvals), so merge it ourselves. Mergeability
+          # can lag a moment after creation, so retry a few times.
+          merged=false
+          for i in $(seq 1 6); do
+            if gh pr merge "$BRANCH" --squash --delete-branch; then
+              merged=true
+              break
+            fi
+            echo "Merge attempt $i failed; retrying in 5s..."
+            sleep 5
+          done
+          if [ "$merged" != "true" ]; then
+            echo "::error::Failed to merge version PR for v${VERSION}"
+            exit 1
           fi
